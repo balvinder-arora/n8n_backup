@@ -1,0 +1,581 @@
+{
+  "createdAt": "2025-05-01T06:03:57.298Z",
+  "updatedAt": "2025-07-16T08:07:47.794Z",
+  "id": "iBZnVqrt9zbU5sQA",
+  "name": "Santorio SubAgent: User Input Analyzer",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json.data;\n\n// Convert [\"WBC\", \"RBC\"] into [{ value: \"WBC\" }, { value: \"RBC\" }]\nreturn data.map(item => ({ json: { value: item } }));\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -540,
+        190
+      ],
+      "id": "939466df-dd65-4bf7-87b7-1f4f6536a5d3",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "96c6f213-ce90-46d4-aade-2ac27853dbf0",
+              "name": "questions",
+              "value": "={{ $json.document.pageContent }}",
+              "type": "string"
+            },
+            {
+              "id": "f63becb3-0413-4bbb-bbd7-673f68d3b4a0",
+              "name": "score",
+              "value": "={{ $json.score }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        396,
+        140
+      ],
+      "id": "5b4e4807-c677-4bb5-b5e9-e4829fdbef81",
+      "name": "Set Vector DB data1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=inputs/questions :: {{ $('AI Agent').item.json.output }}\nkey = {{ $('Loop Over Items').item.json.value }}\nuserInputs :: {{ $('When Executed by Another Workflow').item.json.userInputs }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a smart assistant. Your job is to **save only the questions and answers related to a specific `key`** (e.g., `WBC`) into Supabase.\n\nkey ={{ $('Loop Over Items').item.json.value }}\n\n### 📝 What You Get:\n- **key**: like `WBC`, `RBC`, `RDW`, etc.  \n- **questions**: a list of health-related questions  \n- **userInputs**: a report with test results  \n\n### 🧠 What To Do:\n1. Pick only the questions related to the given `key`.\n2. Find the correct answer from the `userInputs`.\n3. Save them like this:\n\n---\n\n### ❌ Ignore:\nQuestions that are not related to the key (e.g., don’t answer RDW if the key is WBC).\n\n---\n\nLet me know if you want this prompt in a format to plug into n8n or an API.\n\nCreate a array of object of macthed question and answer form key\nAdd question also in object\nAnswers should be proper with value if no then proper if yes then proper , add values of matrix is complusoory , formate of answers should be properly redable\n{\n  question:\"\",\n  answer:\"\"\n}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        616,
+        140
+      ],
+      "id": "9a81d5a8-3a05-438f-a713-42316c92c928",
+      "name": "AI Agent3"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        644,
+        360
+      ],
+      "id": "d0da9e86-98a2-4e9f-9c8f-7dfc3a0e478d",
+      "name": "OpenAI Chat Model3",
+      "credentials": {
+        "openAiApi": {
+          "id": "hpvxzuW3W9YmuUCO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -320,
+        190
+      ],
+      "id": "706cc210-d188-47c8-968a-ced0d6063b72",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.value }}",
+        "options": {
+          "systemMessage": "=You are a helpful assistant\nrole Call vetcor store tool and find relevant matched questions from pincone db tool **stored_quetions_tool**\n\nDo not prepare any questions form ypur side \nAlways use **stored_quetions_tool**  to mathed the questions from db using that below key\n\nkey = {{ $json.value }}\n\nAnd once you got the data from tool just filterout the data based on key return that which is mathed with key not others \n\nInstuction \nHemoglobin and Hemoglobin A1c are diffrent .\nplease add only relent questiosn not others"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.8,
+      "position": [
+        -84,
+        140
+      ],
+      "id": "0dcb604d-eef5-40df-baf1-975857910e33",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        -100,
+        360
+      ],
+      "id": "d2cbedef-e8f7-45af-bca7-b098c40d3407",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "hpvxzuW3W9YmuUCO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        108,
+        560
+      ],
+      "id": "90fe3827-8653-4f87-887b-0ea65c0debfb",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "hpvxzuW3W9YmuUCO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "stored_quetions_tool",
+        "toolDescription": "=Call this tool to get questions stored in db using matched with provided key = {{ $('Loop Over Items').item.json.value }}",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "san-inputs",
+          "mode": "list",
+          "cachedResultName": "san-inputs"
+        },
+        "topK": 10,
+        "options": {
+          "pineconeNamespace": "={{ $('When Executed by Another Workflow').item.json.category }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.1,
+      "position": [
+        20,
+        362.5
+      ],
+      "id": "3c2d6b3e-ebfd-44dd-ad4b-37ad2ccf5f83",
+      "name": "stored_quetions_tool",
+      "credentials": {
+        "pineconeApi": {
+          "id": "EnfM5lZWClj8IYRr",
+          "name": "harshit-pinecone-account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "[\n{\n\t\"question\": \"\",\n\t\"answer\": \"\"\n}\n]"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        764,
+        360
+      ],
+      "id": "f0299197-f309-4634-b023-bf6462f10669",
+      "name": "Structured Output Parser1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json.output;\n\nreturn data\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        992,
+        140
+      ],
+      "id": "2354cf6f-cd02-49aa-ac19-26fd5005cdf5",
+      "name": "Code1",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "tableId": "Relevent User Inputs",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "relevent_question",
+              "fieldValue": "={{ $json.question }}"
+            },
+            {
+              "fieldId": "user_information",
+              "fieldValue": "={{ $json.answer }}"
+            },
+            {
+              "fieldId": "userID",
+              "fieldValue": "={{ $('When Executed by Another Workflow').item.json.userID }}"
+            },
+            {
+              "fieldId": "file_source",
+              "fieldValue": "=https://api.telegram.org/file/bot7241872400:AAEjw-YYvUSCFawfYALHQoNAZd2flCoHZUQ/{{ $('When Executed by Another Workflow').item.json.file_source }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1350,
+        540
+      ],
+      "id": "65c3d4f6-084c-4e34-ad2a-49755a0d45f1",
+      "name": "Supabase",
+      "credentials": {
+        "supabaseApi": {
+          "id": "icQbacGqkQx5nwnQ",
+          "name": "relevant-user inputs Harshit Account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "data",
+              "type": "any"
+            },
+            {
+              "name": "category"
+            },
+            {
+              "name": "userInputs",
+              "type": "any"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -760,
+        190
+      ],
+      "id": "b500bc9a-3efb-4e33-b922-061bd58a6a3a",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "pineconeIndex": {
+          "__rl": true,
+          "value": "user-input-questions-joe-model",
+          "mode": "list",
+          "cachedResultName": "user-input-questions-joe-model"
+        },
+        "embeddingBatchSize": 500,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePinecone",
+      "typeVersion": 1.1,
+      "position": [
+        1228,
+        -60
+      ],
+      "id": "378daf9c-dad0-4721-9c18-75ea030eb6be",
+      "name": "Pinecone Vector Store",
+      "credentials": {
+        "pineconeApi": {
+          "id": "EnfM5lZWClj8IYRr",
+          "name": "harshit-pinecone-account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        1212,
+        160
+      ],
+      "id": "795d584d-3ca9-4ee7-8785-cea579670926",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "hpvxzuW3W9YmuUCO",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.toJsonString() }}",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "={{ $json.question }}",
+                "value": "={{ $json.answer }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1,
+      "position": [
+        1332,
+        162.5
+      ],
+      "id": "519e9716-a8c5-4003-8411-7c7c436a3858",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkSize": 500,
+        "chunkOverlap": 100,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        1420,
+        360
+      ],
+      "id": "561b60b4-aecd-4908-8e7f-0c284bdab257",
+      "name": "Recursive Character Text Splitter"
+    }
+  ],
+  "connections": {
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Vector DB data1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent3": {
+      "main": [
+        [
+          {
+            "node": "Code1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Set Vector DB data1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "stored_quetions_tool",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "stored_quetions_tool": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent3",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code1": {
+      "main": [
+        [
+          {
+            "node": "Supabase",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Pinecone Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase": {
+      "main": [
+        []
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Pinecone Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "18f81153-1b11-4464-86ab-1506ae10dcdf",
+  "triggerCount": 0,
+  "tags": []
+}
