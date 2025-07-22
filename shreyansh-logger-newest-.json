@@ -1,0 +1,205 @@
+{
+  "createdAt": "2025-06-26T06:34:15.153Z",
+  "updatedAt": "2025-07-17T07:57:42.145Z",
+  "id": "OSxAo9ku93J2terx",
+  "name": "Shreyansh Logger-Newest",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N1ShW0AO8x4S7ThF7Wiu9FY5ZWLv2Wl59d-_XC_xxy0",
+          "mode": "list",
+          "cachedResultName": "Agents",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1ShW0AO8x4S7ThF7Wiu9FY5ZWLv2Wl59d-_XC_xxy0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1ShW0AO8x4S7ThF7Wiu9FY5ZWLv2Wl59d-_XC_xxy0/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -3620,
+        20
+      ],
+      "id": "0aa74910-8214-464d-88f8-04a0bfc7a47d",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hpsjv1XnTe2gXjCG",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -3840,
+        -80
+      ],
+      "id": "5ea9ca8d-5063-48b3-91cd-2890e6d21b7b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "BUb54Ltl3C6X8RtN",
+          "mode": "list",
+          "cachedResultName": "Shreyansh MAin workflow getter"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "MainWorkflowID": "={{ $json.Workflow_id }}",
+            "WorkflowLink": "={{ $json.Workflow_link }}",
+            "ImageLink": "={{ $json.Image_link }}",
+            "AgentDescrition": "={{ $json.Agent_description }}"
+          },
+          "matchingColumns": [
+            "MainWorkflowID"
+          ],
+          "schema": [
+            {
+              "id": "MainWorkflowID",
+              "displayName": "MainWorkflowID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "WorkflowLink",
+              "displayName": "WorkflowLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "ImageLink",
+              "displayName": "ImageLink",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "AgentDescrition",
+              "displayName": "AgentDescrition",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -3400,
+        20
+      ],
+      "id": "0b9886d0-2481-43f4-84ef-2b8961cbe3b3",
+      "name": "Execute Workflow2"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "=0 0 * * *"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -3840,
+        120
+      ],
+      "id": "523138bf-696a-40e4-aaf5-07a0858357c6",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "connections": {
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow2": {
+      "main": [
+        []
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": {
+    "node:Schedule Trigger": {
+      "recurrenceRules": []
+    }
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "e671ee1e-4fab-48ca-a064-e6502c499ba2",
+  "triggerCount": 1,
+  "tags": []
+}
