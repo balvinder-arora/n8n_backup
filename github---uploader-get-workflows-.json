@@ -1,0 +1,880 @@
+{
+  "createdAt": "2025-07-17T07:44:40.683Z",
+  "updatedAt": "2025-07-22T10:12:44.918Z",
+  "id": "QkjHWFferJTizTOv",
+  "name": "GitHub - Uploader Get Workflows",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1N1ShW0AO8x4S7ThF7Wiu9FY5ZWLv2Wl59d-_XC_xxy0",
+          "mode": "list",
+          "cachedResultName": "Agents",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1ShW0AO8x4S7ThF7Wiu9FY5ZWLv2Wl59d-_XC_xxy0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1N1ShW0AO8x4S7ThF7Wiu9FY5ZWLv2Wl59d-_XC_xxy0/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        -2120,
+        140
+      ],
+      "id": "e34ee332-6ba5-498f-8e58-e3c4482a7a2f",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hpsjv1XnTe2gXjCG",
+          "name": "Google Sheets account 3"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -2740,
+        860
+      ],
+      "id": "e61333eb-1060-47a8-bef3-00bb73085da8",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "file",
+        "operation": "list",
+        "owner": {
+          "__rl": true,
+          "value": "balvinder-arora",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "n8n_backup",
+          "mode": "list",
+          "cachedResultName": "n8n_backup",
+          "cachedResultUrl": "https://github.com/balvinder-arora/n8n_backup"
+        },
+        "filePath": "="
+      },
+      "id": "c9df7fe3-32c7-44b3-8694-b5a01925eca8",
+      "name": "List files from repo",
+      "type": "n8n-nodes-base.github",
+      "position": [
+        -2500,
+        860
+      ],
+      "webhookId": "354d699e-44b0-4444-9d31-af7fd4ff5561",
+      "typeVersion": 1,
+      "alwaysOutputData": true,
+      "credentials": {
+        "githubOAuth2Api": {
+          "id": "zUubkXeu78m5DmuI",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "name"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "95f78ef0-7a06-4d95-b6c1-ea6b0d17b638",
+      "name": "Aggregate",
+      "type": "n8n-nodes-base.aggregate",
+      "position": [
+        -2300,
+        380
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "const workflowData = $('Get many workflows').first().json;\nconst subWorkflowIds = [];\n\nif (workflowData && workflowData.nodes) {\n  workflowData.nodes.forEach(node => {\n    \n    // 1. Execute Workflow nodes\n    if (node.type === 'n8n-nodes-base.executeWorkflow') {\n      let workflowId = node?.parameters?.workflowId;\n      if (workflowId) {\n        if (typeof workflowId === 'object') workflowId = workflowId.value;\n        if (workflowId) subWorkflowIds.push(workflowId);\n      }\n    }\n\n    // 2. AI Agent Tool Workflow nodes\n    else if (node.type === '@n8n/n8n-nodes-langchain.toolWorkflow') {\n      let workflowId = node?.parameters?.workflowId;\n      if (workflowId) {\n        if (typeof workflowId === 'object') workflowId = workflowId.value;\n        if (workflowId) subWorkflowIds.push(workflowId);\n      }\n    }\n\n    // 3. AI Agent Direct connections\n    else if (node.type?.includes('langchain') && node.type?.includes('agent')) {\n      if (node.parameters) {\n        Object.values(node.parameters).forEach(param => {\n          if (param && typeof param === 'object' && param.value) {\n            const workflowId = param.value;\n            if (workflowId) subWorkflowIds.push(workflowId);\n          }\n        });\n      }\n    }\n  });\n}\n\n// Return unique workflow IDs as array of objects\nconst uniqueSubWorkflowIds = [...new Set(subWorkflowIds)].map(id => ({ id }));\n\nreturn uniqueSubWorkflowIds;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1660,
+        200
+      ],
+      "id": "476f64af-41cf-455a-ad8b-3933d683277f",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "workflowId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [
+        -1420,
+        200
+      ],
+      "id": "1af0edef-fa39-4a2a-91bc-b1b3750351b4",
+      "name": "Get a workflow1",
+      "credentials": {
+        "n8nApi": {
+          "id": "ErPdia6OfpeN2Y4H",
+          "name": "Shreyansh n8n account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"workflow_data\":  {{ $json }},\n  \"git_file_name\": {{ $('List files from repo').all() }}\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1320,
+        40
+      ],
+      "id": "d9582b54-a5cd-4635-95eb-2a9534d7ff9a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"workflow_data\":  {{ $json }},\n  \"git_file_name\": {{ $('List files from repo').all() }}\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1200,
+        220
+      ],
+      "id": "f1c14213-9155-4e86-9fef-0e22fd486d09",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "t7rzt1TFNZaKZId2",
+          "mode": "list",
+          "cachedResultName": "Github - Uploader Feed Workflows"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "workflow_data": "={{ $json.workflow_data }}",
+            "git_file_name": "={{ $json.git_file_name }}"
+          },
+          "matchingColumns": [
+            ""
+          ],
+          "schema": [
+            {
+              "id": "workflow_data",
+              "displayName": "workflow_data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            },
+            {
+              "id": "git_file_name",
+              "displayName": "git_file_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -1000,
+        220
+      ],
+      "id": "da7fa5b3-87e6-46b4-a3fc-f781a24439a8",
+      "name": "Execute Workflow1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "t7rzt1TFNZaKZId2",
+          "mode": "list",
+          "cachedResultName": "Github - Uploader Feed Workflows"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "workflow_data": "={{ $json.workflow_data }}",
+            "git_file_name": "={{ $json.git_file_name }}"
+          },
+          "matchingColumns": [
+            ""
+          ],
+          "schema": [
+            {
+              "id": "workflow_data",
+              "displayName": "workflow_data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "object",
+              "removed": false
+            },
+            {
+              "id": "git_file_name",
+              "displayName": "git_file_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "array",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        -1000,
+        40
+      ],
+      "id": "420d01ba-6326-42a9-aa66-0c3bc695dff0",
+      "name": "Execute Workflow",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "filters": {},
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-base.n8n",
+      "typeVersion": 1,
+      "position": [
+        -2020,
+        380
+      ],
+      "id": "202c9eb9-b5f5-457a-a119-9333d1ac3faa",
+      "name": "Get many workflows",
+      "credentials": {
+        "n8nApi": {
+          "id": "ErPdia6OfpeN2Y4H",
+          "name": "Shreyansh n8n account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1860,
+        180
+      ],
+      "id": "74d6081a-04af-46b1-9254-b6709f8cd50c",
+      "name": "Aggregate1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1260,
+        380
+      ],
+      "id": "f161a1f2-ffb2-4d58-884a-b663c40b56f5",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "file",
+        "owner": {
+          "__rl": true,
+          "value": "balvinder-arora",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "n8n_backup",
+          "mode": "list",
+          "cachedResultName": "n8n_backup",
+          "cachedResultUrl": "https://github.com/balvinder-arora/n8n_backup"
+        },
+        "filePath": "={{ $now }}",
+        "fileContent": "=test",
+        "commitMessage": "=test"
+      },
+      "id": "065ef98f-962f-482d-b653-36963a21ce74",
+      "name": "Upload file",
+      "type": "n8n-nodes-base.github",
+      "position": [
+        -1000,
+        400
+      ],
+      "webhookId": "ce4b561b-acb9-4cd8-b76f-4928dada9674",
+      "typeVersion": 1,
+      "credentials": {
+        "githubOAuth2Api": {
+          "id": "zUubkXeu78m5DmuI",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "maxItems": 10
+      },
+      "type": "n8n-nodes-base.limit",
+      "typeVersion": 1,
+      "position": [
+        -1740,
+        380
+      ],
+      "id": "51ced869-1fe5-4294-85c2-9137186e2d3d",
+      "name": "Limit"
+    },
+    {
+      "parameters": {
+        "filters": {},
+        "requestOptions": {}
+      },
+      "id": "b6bc5d8f-af41-4593-8b99-3a59ed3f4ec8",
+      "name": "Retrieve workflows",
+      "type": "n8n-nodes-base.n8n",
+      "position": [
+        -2120,
+        880
+      ],
+      "typeVersion": 1,
+      "credentials": {
+        "n8nApi": {
+          "id": "ErPdia6OfpeN2Y4H",
+          "name": "Shreyansh n8n account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $('Aggregate2').item.json.name }}",
+              "operation": "contains",
+              "value2": "={{ $('Retrieve workflows').item.json.name.replace(/\\s+/g, '-').toLowerCase() }}-{{ $('Retrieve workflows').item.json.tags[0].name }}.json"
+            }
+          ]
+        }
+      },
+      "id": "d8aa5a24-d4ac-4500-875b-3f4e02f57240",
+      "name": "Check if file exists",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        -1440,
+        880
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "operation": "toJson",
+        "mode": "each",
+        "options": {
+          "format": true
+        }
+      },
+      "id": "a3f36ad3-fdb2-477b-9a42-9edc534f2b3c",
+      "name": "Json file",
+      "type": "n8n-nodes-base.convertToFile",
+      "position": [
+        -1940,
+        880
+      ],
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "options": {}
+      },
+      "id": "3c884ea0-053c-4d50-b312-8e4dc492a739",
+      "name": "To base64",
+      "type": "n8n-nodes-base.extractFromFile",
+      "position": [
+        -1760,
+        880
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### Retrieve previous file names from Github",
+        "height": 380,
+        "width": 300,
+        "color": 5
+      },
+      "id": "9b3e229e-626e-4a5b-b78d-6b7932707f49",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2420,
+        740
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "fe4a36ef-9f04-40e3-99bd-cc517a49b440",
+              "name": "commitDate",
+              "type": "string",
+              "value": "={{ $now.format('dd-MM-yyyy/H:mm') }}"
+            },
+            {
+              "id": "b0fe1bcc-e79c-4a6b-b8b4-44222c8bf4e8",
+              "name": "fileName",
+              "type": "string",
+              "value": "={{ $('Retrieve workflows').item.json.name.replace(/\\s+/g, '-').toLowerCase() }}-{{ $('Retrieve workflows').item.json.tags[0].name }}.json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6ed26d83-da8c-45fc-ad86-7804008fe5b6",
+      "name": "Commit date & file name",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -1600,
+        880
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "content": "### Retrieve and process workflows from n8n",
+        "height": 380,
+        "width": 460,
+        "color": 3
+      },
+      "id": "2953e76b-43fa-456c-a712-5ed45a860ff6",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2100,
+        740
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "content": "### Commit + edit/create files if needed",
+        "height": 380,
+        "width": 460,
+        "color": 4
+      },
+      "id": "92c11ac9-5848-4346-bc60-4171b9bf4de7",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -1620,
+        740
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "name"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "748c94e8-6187-4825-b9c1-7a3040f9aab8",
+      "name": "Aggregate2",
+      "type": "n8n-nodes-base.aggregate",
+      "position": [
+        -2320,
+        880
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "file",
+        "owner": {
+          "__rl": true,
+          "value": "balvinder-arora",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "n8n_backup",
+          "mode": "list",
+          "cachedResultName": "n8n_backup",
+          "cachedResultUrl": "https://github.com/balvinder-arora/n8n_backup"
+        },
+        "filePath": "={{ $('Retrieve workflows').item.json.name.replace(/\\s+/g, '-').toLowerCase() }}-{{ $('Retrieve workflows').item.json.tags[0].name }}.json",
+        "fileContent": "={{ $('To base64').item.json.data }}",
+        "commitMessage": "=backup-{{ $node['Commit date & file name'].json.commitDate }}"
+      },
+      "id": "bc54610f-b514-4d7d-b4fe-01645870fc4c",
+      "name": "Upload file1",
+      "type": "n8n-nodes-base.github",
+      "position": [
+        -1020,
+        1100
+      ],
+      "webhookId": "ce4b561b-acb9-4cd8-b76f-4928dada9674",
+      "typeVersion": 1,
+      "credentials": {
+        "githubOAuth2Api": {
+          "id": "zUubkXeu78m5DmuI",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "file",
+        "operation": "edit",
+        "owner": {
+          "__rl": true,
+          "value": "balvinder-arora",
+          "mode": "name"
+        },
+        "repository": {
+          "__rl": true,
+          "value": "n8n_backup",
+          "mode": "list",
+          "cachedResultName": "n8n_backup",
+          "cachedResultUrl": "https://github.com/balvinder-arora/n8n_backup"
+        },
+        "filePath": "={{ $('Retrieve workflows').item.json.name.replace(/\\s+/g, '-').toLowerCase() }}-{{ $('Retrieve workflows').item.json.tags[0].name }}.json",
+        "fileContent": "={{ $('To base64').item.json.data }}",
+        "commitMessage": "=backup-{{ $('Commit date & file name').item.json.commitDate }}"
+      },
+      "id": "ecb24eeb-539a-4cd8-a059-4acf9be8b013",
+      "name": "Update file",
+      "type": "n8n-nodes-base.github",
+      "position": [
+        -1140,
+        780
+      ],
+      "webhookId": "27218087-8df7-474d-a39f-70cfa9c34ec8",
+      "typeVersion": 1,
+      "credentials": {
+        "githubOAuth2Api": {
+          "id": "zUubkXeu78m5DmuI",
+          "name": "GitHub account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -1320,
+        1100
+      ],
+      "id": "0ac03f40-168a-4b98-8172-54b82a35a779",
+      "name": "Loop Over Items1"
+    }
+  ],
+  "connections": {
+    "Google Sheets": {
+      "main": [
+        []
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "List files from repo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List files from repo": {
+      "main": [
+        [
+          {
+            "node": "Aggregate2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Get many workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Get a workflow1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a workflow1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        []
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many workflows": {
+      "main": [
+        [
+          {
+            "node": "Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        []
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limit": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Json file": {
+      "main": [
+        [
+          {
+            "node": "To base64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "To base64": {
+      "main": [
+        [
+          {
+            "node": "Commit date & file name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve workflows": {
+      "main": [
+        [
+          {
+            "node": "Json file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if file exists": {
+      "main": [
+        [
+          {
+            "node": "Update file",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Commit date & file name": {
+      "main": [
+        [
+          {
+            "node": "Check if file exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate2": {
+      "main": [
+        [
+          {
+            "node": "Retrieve workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Upload file1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "3b945c64-a6e3-4dad-bdce-8f612d6a248c",
+  "triggerCount": 0,
+  "tags": []
+}
